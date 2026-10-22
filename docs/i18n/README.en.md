@@ -1,0 +1,187 @@
+<div align="center">
+
+<img src="../../assets/hero.png" alt="dsh-on-android" width="100%">
+
+# dsh-on-android
+
+**Run DeepSeek Harness (`dsh web`) on an Android phone.** No root, no Termux X11, no Chromium build — it runs inside PRoot + Alpine (musl / aarch64), with four misleading failures already solved.
+
+[简体中文](../README.md) · **English** · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+
+</div>
+
+---
+
+## TL;DR
+
+```bash
+git clone https://github.com/maple564/dsh-on-android.git && cd dsh-on-android
+sh install.sh                                  # deps -> dsh -> rebuild node-pty -> install to /opt/dsh-harness
+export DEEPSEEK_API_KEY=sk-xxxxxxxx            # or put that single line in ~/.dsh/.env
+dsh-go                                         # opens http://127.0.0.1:3080
+```
+
+First run in the web UI: hit “继续” (continue) → pick a writable workspace → the header shows `DeepSeek-V4-Flash` when the key works.
+
+![terminal](https://github.com/maple564/dsh-on-android/raw/main/assets/terminal.png)
+
+---
+
+## What it runs on
+
+The reference environment is **[OpenMinis](https://github.com/OpenMinis/OpenMinis)** (formerly Minis, open source, GPLv3) — a mobile AI-agent app that ships a full Alpine Linux sandbox on device. That sandbox *is* PRoot + musl + aarch64, i.e. exactly the kind of environment this repo is about.
+
+- **Inside OpenMinis**: install the app, open any session, let the agent run `sh install.sh`. Sandbox, `android-*` CLIs and file mounts are already there (`/var/minis/mounts/...`, `/sdcard/Documents`).
+- **Anywhere else**: Termux + `proot-distro install alpine`, UserLAnd, or any PRoot container. `install.sh` only needs `apk`, `npm`, `node-gyp`.
+
+---
+
+## The scarce part: it doesn't just run — it can touch the files on your phone
+
+Anyone can run dsh on a laptop. **The value of running it on a phone isn't dsh — it's that it sits right next to your photos, downloads and chat attachments.**
+
+OpenMinis mounts phone storage into the sandbox at fixed paths:
+
+| Phone side | Inside the sandbox | Typical use |
+|---|---|---|
+| `/sdcard/Documents` | `/var/minis/mounts/Documents/` | documents, lecture slides, downloaded PDFs |
+| `/sdcard/Download` | `/var/minis/mounts/Download/` | browser downloads, files saved from WeChat |
+| cross-session share | `/var/minis/shared/` | artefacts shared between sessions |
+
+Point the dsh workspace at those mounts and it becomes **an agent that can read and write your phone**:
+
+- **Output lands on the phone directly** — PPTX / PDF / ICS / scripts written to `Documents/dsh-workspace/` open immediately in a file manager, WeChat or WPS. No "transfer it to the phone again" step.
+- **Read phone files in reverse** — drop a `.docx`, a timetable screenshot or an invoice PDF into Documents and let dsh read, edit and re-export it in-session.
+- **Offline and private** — inference goes to your own API key; files never leave the device.
+- **Available anywhere** — on the subway, in bed, while travelling.
+
+### The one critical step: mount the workspace
+
+dsh defaults to `/root`, which hits `Operation not permitted` under PRoot and is invisible from the phone. Switch it to a mount:
+
+```bash
+mkdir -p /var/minis/mounts/Documents/dsh-workspace
+cp ~/.dsh/storages/workspace.json ~/.dsh/storages/workspace.json.bak
+python3 - <<'PY'
+import json, uuid, datetime
+p = json.load(open('/root/.dsh/storages/workspace.json'))
+new = "/var/minis/mounts/Documents/dsh-workspace"
+for ws in p["tables"]["workspaces"].values():
+    if ws.get("path") == new:
+        raise SystemExit("already registered")
+now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", ".000Z")
+wid = "ws-" + uuid.uuid4().hex[:12]
+p["tables"]["workspaces"][wid] = {"path": new, "title": "dsh-workspace",
+                                  "sessionIds": [], "createdAt": now, "updatedAt": now}
+p["global"]["workspaceIds"].append(wid)
+json.dump(p, open('/root/.dsh/storages/workspace.json', 'w'), indent=2, ensure_ascii=False)
+print("registered", wid)
+PY
+pkill -f 'dsh/lib/bin.js'; sleep 2; dsh-go
+```
+
+**Verify**: ask the agent to write `hello.txt`, then open `Documents/dsh-workspace/` in the phone's file manager — it's there.
+
+> This is a different thing from "a local agent on your laptop": to touch phone files a desktop agent needs WeChat forwarding, cloud sync or a USB cable. A dsh workspace mounted on OpenMinis just calls `open()`.
+
+---
+
+## Why this repo exists
+
+`npx @deepseek-ai/dsh` is one line on a glibc desktop. On musl it hits four walls in a row — and **every error message points the wrong way**, which can burn two days.
+
+| # | What you see | What you'd think | What it actually is | Fix |
+|---|---|---|---|---|
+| 1 | `Error loading shared library ld-linux-aarch64.so.1` | missing system library | node-pty ships a **glibc prebuilt** binary | `node-gyp rebuild` |
+| 2 | `--expose-internals is required for HMR` | the flag didn't apply | it is **not allowed in `NODE_OPTIONS`** | pass it on the node command line |
+| 3 | `.env sets DSH_PERMISSION_MODE ... only the launching environment may set` | malformed .env | it is a **bootstrap-only variable** | `export` it in the wrapper |
+| 4 | `no sandbox backend is usable` | permission problem | no usable backend for workspace-write in containers | `DSH_PERMISSION_MODE=danger-full-access` |
+
+This repo bakes those fixes into `install.sh` plus two wrappers.
+
+---
+
+## Requirements
+
+| Item | Requirement |
+|---|---|
+| Host | Android 10+ (tested on Android 16 / aarch64) |
+| Container | Any PRoot Linux: **OpenMinis / Minis sandbox**, `proot-distro install alpine`, UserLAnd… |
+| Distro | Alpine 3.20+ (musl); any glibc distro works — the rebuild step is skipped automatically |
+| Node | ≥ 20 (tested 22.23.2) |
+| Disk | ~800 MB |
+| Root | **not needed** |
+
+---
+
+## The four failures in detail
+
+**1. node-pty must be recompiled for musl**
+```bash
+apk add --no-cache build-base linux-headers python3
+cd <node_modules>/node-pty && npx --yes node-gyp rebuild     # wait for "gyp info ok"
+```
+`prebuilds/linux-arm64/pty.node` is glibc ABI; musl has no `ld-linux-aarch64.so.1`, so it can never load.
+
+**2. `--expose-internals` only works on the command line**
+```sh
+exec node --expose-internals /opt/dsh-harness/node_modules/@deepseek-ai/dsh/lib/bin.js "$@"
+```
+
+**3. `DSH_PERMISSION_MODE` is a bootstrap variable**
+```sh
+export DSH_PERMISSION_MODE=danger-full-access    # must be in the launching process's env
+```
+Putting it in `~/.dsh/.env` makes dsh **refuse to start** — by design. Side effect: Bash commands are **no longer approved one by one**, so never expose port 3080 publicly.
+
+**4. Solid install: `cp -a` fails under PRoot, use a tar stream**
+```bash
+cd /root/.npm/_npx/<hash>/node_modules
+tar cf - --exclude='node-pty/build' . | (cd /opt/dsh-harness && tar xf -)
+```
+
+---
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `dsh --version` | verify the install |
+| `dsh-go` | start the web UI and open it |
+| `dsh-go --status` | check whether it's running |
+| `dsh-go --browser` | open in the system browser |
+| `pkill -f 'dsh/lib/bin.js'` | stop |
+| `~/.dsh-web.log` | log |
+
+---
+
+## FAQ
+
+**`Cannot find module '/opt/dsh-harness/node_modules/...'`** — the dir tree got flattened. It must be `/opt/dsh-harness/node_modules/@deepseek-ai/dsh/lib/bin.js`.
+
+**Blank page in the web UI** — ① the browser engine lacks Canvas/WebGL (some in-app WebViews render blank but the DOM still works — use Chrome); ② the server isn't up: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3080/` → `000` means dead.
+
+**`Operation not permitted` when writing files** — PRoot view mismatch, not permissions. Move the workspace to a mounted shared directory.
+
+**Killed when sent to background** — `nohup` only survives SIGHUP. Real persistence needs a Termux foreground service plus battery-optimisation whitelist.
+
+**Does it work in native Termux (no PRoot)?** Yes, and it's more stable (bionic has full syscalls) — but node-pty still needs compiling for that environment; reuse the compile step.
+
+---
+
+## Known limits
+
+- **Process lifetime is tied to the host**: kill the app/container and dsh dies with it. Split long tasks into small steps.
+- **Long sessions get reclaimed**: a memory-pressured tab may be destroyed and the front-end connection drops; refresh and reconnect.
+- **Performance**: PRoot adds syscall translation overhead — the first `npm install` is noticeably slower than on desktop.
+- **Never expose 3080 publicly**: default is full-access; that hands over a shell.
+
+---
+
+## Contributing
+
+New pitfalls, other devices, other PRoot distros — PRs welcome. For issues please include `uname -a`, `node -v`, `dsh --version` and the full error text.
+
+## License
+
+[MIT](../../LICENSE)
