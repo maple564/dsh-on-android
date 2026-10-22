@@ -27,6 +27,25 @@ First run in the web UI: hit “继续” (continue) → pick a writable workspa
 
 ---
 
+## Verified on a real phone
+
+Android 16, Chrome at `http://127.0.0.1:3080` — no mock-ups:
+
+<p align="center">
+<img src="../../assets/screenshots/phone-new-session.jpg" width="45%" alt="new session">
+<img src="../../assets/screenshots/phone-session.jpg" width="45%" alt="session running">
+</p>
+
+Left: the workspace screen with `DeepSeek-V4-Flash` at the bottom (model connected). Right: a real session — `对话 / 轨迹` (chat / trace) views, `产物 +1个文件` (one artefact), `任务 4 已完成` (4 tasks done), `1 轮 · 31 步` (1 turn, 31 steps).
+
+<p align="center">
+<img src="../../assets/screenshots/phone-status.jpg" width="62%" alt="dsh-go --status">
+</p>
+
+`dsh-go --status` output — and the reason this repo exists: the process line literally reads `node --expose-internals /opt/dsh-harness/.../bin.js web`, i.e. the fix for wall #2.
+
+---
+
 ## What it runs on
 
 The reference environment is **[OpenMinis](https://github.com/OpenMinis/OpenMinis)** (formerly Minis, open source, GPLv3) — a mobile AI-agent app that ships a full Alpine Linux sandbox on device. That sandbox *is* PRoot + musl + aarch64, i.e. exactly the kind of environment this repo is about.
