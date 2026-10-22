@@ -4,7 +4,7 @@
 set -eu
 
 DSH_HOME="${1:-/opt/dsh-harness}"
-BIN_DIR="/usr/local/bin"
+BIN_DIR="${DSH_BIN_DIR:-/usr/local/bin}"
 
 log() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -33,15 +33,27 @@ if ! command -v g++ >/dev/null 2>&1; then
 fi
 
 # ---------- 2. 拉取 dsh ----------
-log "安装 @deepseek-ai/dsh（首次约 400-600MB，耐心等）"
+# 可测参数：
+#   DSH_SRC=<path>    用一个已存在的 node_modules 目录代替 npm 安装（离线 / 测试用）
+#   DSH_SKIP_BUILD=1  跳过 node-pty 重编译
+#   DSH_BIN_DIR=<path> wrapper 安装目录（默认 /usr/local/bin）
 WORK=$(mktemp -d)
-cd "$WORK"
-npm install --no-audit --no-fund @deepseek-ai/dsh@latest
+if [ -n "${DSH_SRC:-}" ]; then
+  log "使用现有依赖树：$DSH_SRC（跳过 npm install）"
+  mkdir -p "$WORK/node_modules"
+  ( cd "$DSH_SRC" && tar cf - . ) | ( cd "$WORK/node_modules" && tar xf - )
+else
+  log "安装 @deepseek-ai/dsh（首次约 400-600MB，耐心等）"
+  cd "$WORK"
+  npm install --no-audit --no-fund @deepseek-ai/dsh@latest
+fi
 [ -f "$WORK/node_modules/@deepseek-ai/dsh/lib/bin.js" ] || die "安装后找不到 lib/bin.js"
 
 # ---------- 3. 针对 musl 重编译 node-pty ----------
 PTY_DIR="$WORK/node_modules/node-pty"
-if [ -d "$PTY_DIR" ]; then
+if [ "${DSH_SKIP_BUILD:-0}" = "1" ]; then
+  log "DSH_SKIP_BUILD=1，跳过 node-pty 编译"
+elif [ -d "$PTY_DIR" ]; then
   log "重编译 node-pty（musl）"
   ( cd "$PTY_DIR" && npx --yes node-gyp rebuild )
   ( cd "$PTY_DIR" && node -e "const pty=require('./lib/index.js');const p=pty.spawn('/bin/echo',['ok'],{});p.onExit(e=>{console.log('node-pty OK',e.exitCode);process.exit(0)})" ) \
@@ -56,12 +68,14 @@ rm -rf "$DSH_HOME"
 mkdir -p "$DSH_HOME"
 ( cd "$WORK/node_modules" && tar cf - . ) | ( cd "$DSH_HOME" && tar xf - )
 mkdir -p "$DSH_HOME/node_modules"
-for f in "$DSH_HOME"/* ; do
-  case "$(basename "$f")" in
-    node_modules) ;;
-    *) mv "$f" "$DSH_HOME/node_modules/";;
-  esac
+# 注意要连 .bin / .package-lock.json 这类隐藏项一起搬，否则 npm 的 bin 链接会丢
+for f in "$DSH_HOME"/* "$DSH_HOME"/.[!.]* ; do
+  [ -e "$f" ] || continue
+  b=$(basename "$f")
+  [ "$b" = "node_modules" ] && continue
+  mv "$f" "$DSH_HOME/node_modules/$b"
 done
+[ -f "$DSH_HOME/node_modules/@deepseek-ai/dsh/lib/bin.js" ] || die "固化后路径不对：$DSH_HOME/node_modules/@deepseek-ai/dsh/lib/bin.js 不存在"
 
 # ---------- 5. wrapper ----------
 log "写入 $BIN_DIR/dsh 与 $BIN_DIR/dsh-go"
