@@ -8,6 +8,7 @@
 不用 root、不用 Termux X11、不编译 Chromium —— PRoot + Alpine（musl / aarch64）里跑通，四个坑已经填平。
 
 [![platform](https://img.shields.io/badge/platform-Android%20%2B%20PRoot-3ddc84?logo=android&logoColor=white)](#)
+[![runs on](https://img.shields.io/badge/runs%20on-OpenMinis%2FMinis-4f46e5)](https://github.com/OpenMinis/OpenMinis)
 [![libc](https://img.shields.io/badge/libc-musl%20aarch64-2563eb)](#)
 [![dsh](https://img.shields.io/badge/dsh-0.1.0--rc.7-4f46e5)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 [![license](https://img.shields.io/badge/license-MIT-22c55e)](LICENSE)
@@ -32,6 +33,19 @@ dsh-go                                         # 打开 http://127.0.0.1:3080
 
 ---
 
+## 跑在什么上面
+
+首次跑通的环境是 **[OpenMinis](https://github.com/OpenMinis/OpenMinis)（即 Minis，开源，GPLv3）**：它是一个把完整 Alpine Linux 沙箱塞进手机里的 Android / iOS AI Agent 应用，沙箱本身就是 PRoot + musl + aarch64 —— 也就是这个仓库要对付的那类环境。
+
+所以：
+
+- **在 OpenMinis 里**：装好 App，打开任意会话，让 Agent 执行 `sh install.sh` 即可；沙箱、`android-*` CLI、文件挂载都是现成的，本文档里的路径（`/var/minis/mounts/...`、`/sdcard/Documents`）就是它的挂载点。
+- **不在 OpenMinis 里**：Termux + `proot-distro install alpine`、UserLAnd 等任何 PRoot 容器都适用，`install.sh` 只依赖 `apk/npm/node-gyp`。
+
+> 为什么特意写这一节：光说「Android + PRoot」太抽象，两个报错（node-pty 的 glibc ABI、sandbox backend 缺失）都跟**宿主进程怎么起容器**有关，知道宿主是什么，排查时能少走一半弯路。
+
+---
+
 ## 为什么需要这个仓库
 
 `npx @deepseek-ai/dsh` 在 glibc 桌面上是一行命令的事，但在 musl 环境里会连续撞四堵墙 —— 而且**每一堵墙的报错都指向错误方向**，能让人白折腾两天。
@@ -52,7 +66,7 @@ dsh-go                                         # 打开 http://127.0.0.1:3080
 | 项 | 要求 |
 |---|---|
 | 宿主 | Android 10+（已在 Android 16 / aarch64 实测） |
-| 容器 | 任意 PRoot Linux：Minis 沙箱、`proot-distro install alpine`、UserLAnd 等 |
+| 容器 | 任意 PRoot Linux：**OpenMinis / Minis 沙箱**、`proot-distro install alpine`、UserLAnd 等 |
 | 发行版 | Alpine 3.20+（musl）或任意 glibc 发行版（脚本会自动跳过重编译） |
 | Node | ≥ 20（实测 22.23.2） |
 | 磁盘 | 约 800 MB（依赖树较大） |
@@ -161,7 +175,7 @@ PRoot 视图问题，不是权限。把工作区换成挂载的共享目录（�
 
 ## English
 
-`dsh-on-android` documents and scripts a working **DeepSeek Harness** setup on **Android via PRoot + Alpine (musl / aarch64)** — no root, no Chromium build. It encodes fixes for four misleading failures: glibc-prebuilt `node-pty`, `--expose-internals` being rejected inside `NODE_OPTIONS`, `DSH_PERMISSION_MODE` being a bootstrap-only variable, and the missing sandbox backend in containers. Run `sh install.sh && dsh-go`.
+`dsh-on-android` documents and scripts a working **DeepSeek Harness** setup on **Android via PRoot + Alpine (musl / aarch64)** — no root, no Chromium build. First brought up inside **[OpenMinis](https://github.com/OpenMinis/OpenMinis)** (the open-source mobile AI-agent app that ships an on-device Alpine sandbox); any PRoot container works too. It encodes fixes for four misleading failures: glibc-prebuilt `node-pty`, `--expose-internals` being rejected inside `NODE_OPTIONS`, `DSH_PERMISSION_MODE` being a bootstrap-only variable, and the missing sandbox backend in containers. Run `sh install.sh && dsh-go`.
 
 ## License
 
