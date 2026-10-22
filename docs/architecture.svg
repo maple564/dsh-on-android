@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="300" viewBox="0 0 860 300" font-family="-apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="860" height="300" fill="#0f172a"/>
+
+  <!-- Android host -->
+  <rect x="24" y="60" width="170" height="120" rx="12" fill="#1e293b" stroke="#334155"/>
+  <text x="109" y="94" fill="#e2e8f0" font-size="15" font-weight="600" text-anchor="middle">Android 手机</text>
+  <text x="109" y="120" fill="#94a3b8" font-size="12" text-anchor="middle">宿主进程 / 电池白名单</text>
+  <text x="109" y="142" fill="#94a3b8" font-size="12" text-anchor="middle">杀掉则容器一起死</text>
+
+  <line x1="194" y1="120" x2="256" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- PRoot Alpine -->
+  <rect x="264" y="24" width="292" height="240" rx="14" fill="#111c2e" stroke="#2563eb" stroke-dasharray="6 4"/>
+  <text x="410" y="50" fill="#60a5fa" font-size="13" font-weight="600" text-anchor="middle">PRoot · Alpine Linux (musl / aarch64)</text>
+
+  <rect x="284" y="66" width="252" height="42" rx="8" fill="#1e293b" stroke="#334155"/>
+  <text x="410" y="93" fill="#e2e8f0" font-size="13" text-anchor="middle">Node 22 · --expose-internals</text>
+
+  <rect x="284" y="118" width="252" height="42" rx="8" fill="#1e293b" stroke="#334155"/>
+  <text x="410" y="145" fill="#e2e8f0" font-size="13" text-anchor="middle">dsh (0.1.0-rc.x) · /opt/dsh-harness</text>
+
+  <rect x="284" y="170" width="252" height="42" rx="8" fill="#1e293b" stroke="#f59e0b"/>
+  <text x="410" y="190" fill="#fbbf24" font-size="12" text-anchor="middle">node-pty —— 源码重编译（musl）</text>
+  <text x="410" y="205" fill="#94a3b8" font-size="10" text-anchor="middle">glibc 预编译包在这里必然加载失败</text>
+
+  <rect x="284" y="222" width="252" height="30" rx="8" fill="#1e293b" stroke="#334155"/>
+  <text x="410" y="242" fill="#94a3b8" font-size="11" text-anchor="middle">DEEPSEEK_API_KEY · ~/.dsh/.env</text>
+
+  <line x1="556" y1="120" x2="616" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- Web UI -->
+  <rect x="624" y="60" width="212" height="120" rx="12" fill="#1e293b" stroke="#22c55e"/>
+  <text x="730" y="94" fill="#e2e8f0" font-size="15" font-weight="600" text-anchor="middle">Web UI</text>
+  <text x="730" y="120" fill="#4ade80" font-size="12" text-anchor="middle">127.0.0.1:3080</text>
+  <text x="730" y="142" fill="#94a3b8" font-size="12" text-anchor="middle">手机浏览器打开即可</text>
+
+  <text x="430" y="285" fill="#64748b" font-size="11" text-anchor="middle">dsh-on-android · 四堵墙都已填平</text>
+</svg>
