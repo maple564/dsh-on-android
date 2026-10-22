@@ -34,6 +34,25 @@ dsh-go                                         # 打开 http://127.0.0.1:3080
 
 ---
 
+## 真机实测
+
+Android 16 手机，Chrome 打开 `http://127.0.0.1:3080`，实拍没有任何后期：
+
+<p align="center">
+<img src="assets/screenshots/phone-new-session.jpg" width="45%" alt="新建会话">
+<img src="assets/screenshots/phone-session.jpg" width="45%" alt="对话进行中">
+</p>
+
+左边是进入后的工作区界面（底部 `DeepSeek-V4-Flash` 说明模型已接通），右边是一次真实会话：`对话 / 轨迹` 双视图、`产物 +1个文件`、`任务 4 已完成`、`1 轮 · 31 步`。
+
+<p align="center">
+<img src="assets/screenshots/phone-status.jpg" width="62%" alt="dsh-go --status">
+</p>
+
+这张是 `dsh-go --status` 的输出，也是这个仓库存在的理由 —— 进程行里那句 `node --expose-internals /opt/dsh-harness/.../bin.js web`，就是四堵墙里第二堵的解法。
+
+---
+
 ## 跑在什么上面
 
 首次跑通的环境是 **[OpenMinis](https://github.com/OpenMinis/OpenMinis)（即 Minis，开源，GPLv3）**：它是一个把完整 Alpine Linux 沙箱塞进手机里的 Android / iOS AI Agent 应用，沙箱本身就是 PRoot + musl + aarch64 —— 也就是这个仓库要对付的那类环境。
