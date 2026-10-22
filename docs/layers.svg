@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="-apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="900" height="420" fill="#0f172a"/>
+
+  <!-- 执行层 -->
+  <rect x="40" y="30" width="820" height="150" rx="14" fill="#111c2e" stroke="#2563eb"/>
+  <text x="60" y="60" fill="#60a5fa" font-size="15" font-weight="600">执行层 · DeepSeek Harness (dsh web)</text>
+  <text x="60" y="88" fill="#cbd5e1" font-size="13">agent 循环 · plan/todo · 工具调用 · 长任务上下文</text>
+  <text x="60" y="112" fill="#cbd5e1" font-size="13">对话 / 轨迹双视图 · 步骤数 · 模型与推理强度</text>
+  <text x="60" y="146" fill="#64748b" font-size="12">只管"把活干完"，不关心文件最终躺在哪</text>
+  <rect x="640" y="52" width="196" height="34" rx="17" fill="#1e293b" stroke="#2563eb"/>
+  <text x="738" y="74" fill="#93c5fd" font-size="12" text-anchor="middle">127.0.0.1:3080</text>
+
+  <!-- 契约 -->
+  <rect x="40" y="192" width="820" height="52" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-dasharray="7 5"/>
+  <text x="450" y="223" fill="#fbbf24" font-size="14" font-weight="600" text-anchor="middle">唯一契约：挂载目录（/var/minis/mounts/Documents/dsh-workspace）</text>
+
+  <!-- 本地层 -->
+  <rect x="40" y="256" width="820" height="130" rx="14" fill="#111c2e" stroke="#4f46e5"/>
+  <text x="60" y="286" fill="#a5b4fc" font-size="15" font-weight="600">本地层 · Minis（OpenMinis 沙箱）</text>
+  <text x="60" y="314" fill="#cbd5e1" font-size="13">挂载手机存储 · PRoot/Alpine 沙箱 · 设备能力（相册 / 日历 / 通知 / 剪贴板）</text>
+  <text x="60" y="338" fill="#cbd5e1" font-size="13">API key 与权限 · App 生命周期 · 文件真实落地的位置</text>
+  <text x="60" y="368" fill="#64748b" font-size="12">只管"文件是真的、设备是真的"，不关心任务怎么拆</text>
+
+  <line x1="16" y1="105" x2="30" y2="105" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="16" y1="321" x2="30" y2="321" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ar)"/>
+</svg>
