@@ -12,6 +12,23 @@
 
 ---
 
+## What people assume vs what this actually is
+
+"dsh on Android" sounds like **a web page you open in a browser** — you can chat, but it can't touch anything. That assumption is the whole difference:
+
+| Where it runs | Files it can touch | Upload / sync needed | Device APIs |
+|---|---|---|---|
+| A hosted dsh in your browser | no filesystem at all | — | none |
+| dsh on a laptop | the laptop's files | output has to be sent back to the phone | none |
+| dsh on a cloud server / cloud IDE | the cloud's files | yes — files leave the device | none |
+| **This: dsh inside Minis** | **your phone's Documents / Download** | **none — files never leave the device** | photos / calendar / notifications / clipboard |
+
+The UI is identical (`http://127.0.0.1:3080`). **The difference is not the interface — it's which filesystem the harness is sitting on.**
+
+In one line: **someone else's agent, running on your phone's files.**
+
+---
+
 ## TL;DR
 
 ```bash
