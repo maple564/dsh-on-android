@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.4 — 2026-10-22
+
+### Added
+- **真机实测截图**（Android 16 / Chrome，非示意图）：工作区界面、真实会话（对话/轨迹、产物、任务、31 步）、以及 `dsh-go --status` 里那句 `node --expose-internals ...` 的实证
+- README（中/英）新增「真机实测」小节
+
 ## v0.1.3 — 2026-10-22
 
 ### Added
