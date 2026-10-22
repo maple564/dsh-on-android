@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.9 — 2026-10-22
+
+### Added
+- `tools/probe.sh`：换设备 / 换发行版时的一次性体检（系统、libc、发行版、node、工具链、磁盘、固化状态、3080、挂载点），每项容错，输出可直接贴 issue
+- 已在 Android 沙箱实测（aarch64 / musl / Alpine 3.21.3 / node 22.23.2 / dsh 0.1.0-rc.7 / node-pty 已编译）
+
 ## v0.1.8 — 2026-10-22
 
 ### Added
