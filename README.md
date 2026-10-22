@@ -271,6 +271,8 @@ PRoot 视图问题，不是权限。把工作区换成挂载的共享目录（�
 踩到新的坑 / 换机型跑通 / 适配别的 PRoot 发行版，都欢迎提 PR。
 提 issue 请带上：`uname -a`、`node -v`、`dsh --version`、完整报错原文。
 
+想聊"手机上到底值得这样跑什么"（Jupyter？本地 RAG？别的 harness？）→ 去 [Discussions](https://github.com/maple564/dsh-on-android/discussions)。
+
 ---
 
 ## English
