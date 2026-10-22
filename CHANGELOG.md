@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.3 — 2026-10-22
+
+### Added
+- **多语言 README**：English / 繁體中文 / 日本語 / 한국어（主 README 简体中文），顶部语言切换栏互链
+- **「稀缺点」一节**：dsh 工作区挂到 OpenMinis 的挂载目录（`/var/minis/mounts/Documents` 等）后，Agent 能直接读写手机文件，产物落地后手机文件管理器/微信/WPS 即刻可用；含 `workspace.json` 注册脚本
+- `docs/mount-flow.svg`：手机存储 ↔ 沙箱挂载 ↔ dsh 工作区 的数据流示意图
+
 ## v0.1.2 — 2026-10-22
 
 ### Changed
