@@ -27,6 +27,21 @@ The UI is identical (`http://127.0.0.1:3080`). **The difference is not the inter
 
 In one line: **someone else's agent, running on your phone's files.**
 
+### This is not a mock-up — here is one real rewrite
+
+A minimal test with a reading note on the DeepSeek-R1 paper: ask dsh to rewrite `dsh-workspace/读书笔记.md`, then open the same path in the phone's file manager.
+
+![proof](../../assets/screenshots/proof-two-layers.jpg)
+
+The path on the left and the file on the right are the same object. Verified from a shell as well:
+
+```console
+$ ls -l /var/minis/mounts/Documents/dsh-workspace/
+-rw-rw---- 1 ... 1797 Oct 22 23:30 读书笔记.md
+```
+
+**1.8 KB, mtime 23:30, content is the rewritten version.** Not a copy-and-transfer step — the same file: the moment dsh wrote it, the phone's file manager showed it.
+
 ---
 
 ## TL;DR
