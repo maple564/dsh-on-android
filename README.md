@@ -34,6 +34,25 @@
 
 一句话：**别人的 Agent，跑在你手机的文件上。**
 
+### 这不是示意图，是一次真实改写
+
+拿 DeepSeek-R1 论文的读书笔记做了个最小验证：让 dsh 改写 `dsh-workspace/读书笔记.md`，然后去手机文件管理器里看同一个路径。
+
+![真实验证](assets/screenshots/proof-two-layers.jpg)
+
+左边的路径和右边的文件是同一份东西。我在这台机器的 shell 里也核对过一次：
+
+```console
+$ ls -l /var/minis/mounts/Documents/dsh-workspace/
+-rw-rw---- 1 ... 1797 Oct 22 23:30 读书笔记.md
+$ head -3 读书笔记.md
+# 读书笔记
+
+## 第一章
+```
+
+**2 KB、时间 23:30、内容是 dsh 改写的版本** —— 不是转账式复制，是同一个 inode：dsh 写进去的那一刻，手机文件管理器里就变了。
+
 ---
 
 ## TL;DR
