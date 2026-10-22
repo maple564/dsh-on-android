@@ -9,6 +9,16 @@ BIN_DIR="/usr/local/bin"
 log() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
+# 失败时给出明确的下一步，而不是只留一个行号
+on_exit() {
+  st=$?
+  [ "$st" -eq 0 ] && return 0
+  printf '\033[1;31mERROR:\033[0m 安装中断（退出码 %s）。\n' "$st" >&2
+  printf '  先看 docs/pitfalls.md；还不行把完整报错贴到 issues：\n' >&2
+  printf '  https://github.com/maple564/dsh-on-android/issues\n' >&2
+}
+trap on_exit EXIT
+
 # ---------- 0. 环境检查 ----------
 command -v node >/dev/null 2>&1 || die "找不到 node，先 apk add nodejs npm"
 command -v npm  >/dev/null 2>&1 || die "找不到 npm，先 apk add nodejs npm"
