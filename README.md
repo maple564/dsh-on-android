@@ -273,6 +273,14 @@ PRoot 视图问题，不是权限。把工作区换成挂载的共享目录（�
 
 想聊"手机上到底值得这样跑什么"（Jupyter？本地 RAG？别的 harness？）→ 去 [Discussions](https://github.com/maple564/dsh-on-android/discussions)。
 
+改完 `install.sh` 想验证固化逻辑，不用重新 npm install 一遍：
+
+```bash
+DSH_SRC=/path/to/any/node_modules DSH_SKIP_BUILD=1 DSH_BIN_DIR=/tmp/bin \
+  sh install.sh /tmp/opt-test        # 只跑 tar 固化 + wrapper 生成
+/tmp/bin/dsh --version               # 应该打出被固化那一份的版本号
+```
+
 ---
 
 ## English
