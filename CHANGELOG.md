@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.2 — 2026-10-22
+
+### Changed
+- 明确标注运行宿主：首次跑通环境是 [OpenMinis / Minis](https://github.com/OpenMinis/OpenMinis)（开源，GPLv3，自带 Alpine 沙箱）
+- 新增「跑在什么上面」一节，说明 OpenMinis 与其他 PRoot 容器（`proot-distro` / UserLAnd）的差异与共用点
+- 徽章增加 `runs on OpenMinis`
+
 ## v0.1.1 — 2026-10-22
 
 ### Added
