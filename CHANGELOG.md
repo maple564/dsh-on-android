@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.1.6 — 2026-10-22
+
+### Fixed
+- **`install.sh` 漏搬隐藏项**：`for f in *` 不匹配 `.bin` / `.package-lock.json`，固化后 npm 的 bin 链接会丢。改成同时匹配 `.[!.]*`
+- 固化后增加一次关键文件存在性检查，路径不对就直接报错，而不是等到运行时 `Cannot find module`
+
+### Added
+- `DSH_SRC` / `DSH_SKIP_BUILD=1` / `DSH_BIN_DIR` 三个参数，让脚本可以离线干跑（不重新 npm install 也能验证 tar 固化与 wrapper 生成）
+- 已实测：`DSH_SRC=... DSH_SKIP_BUILD=1 DSH_BIN_DIR=/tmp/bin sh install.sh /tmp/opt-test` → 结构正确、`dsh --version` 打出固化那份的版本号、失败时打印 issue 引导
+
 ## v0.1.5 — 2026-10-22
 
 ### Changed
