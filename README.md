@@ -4,8 +4,7 @@
 
 # dsh-on-android
 
-**在 Android 手机上跑 DeepSeek Harness（`dsh web`）**
-不用 root、不用 Termux X11、不编译 Chromium —— PRoot + Alpine（musl / aarch64）里跑通，四个坑已经填平。
+**在 Android 手机上跑 [OpenMinis](https://github.com/OpenMinis/OpenMinis)（Minis）里的 DeepSeek Harness，并把手机文件目录挂成它的工作区** —— 不用 root、不用 Termux X11、不编译 Chromium；PRoot + Alpine（musl / aarch64）四个坑已经填平。
 
 [![platform](https://img.shields.io/badge/platform-Android%20%2B%20PRoot-3ddc84?logo=android&logoColor=white)](#)
 [![runs on](https://img.shields.io/badge/runs%20on-OpenMinis%2FMinis-4f46e5)](https://github.com/OpenMinis/OpenMinis)
@@ -13,6 +12,8 @@
 [![dsh](https://img.shields.io/badge/dsh-0.1.0--rc.7-4f46e5)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 [![license](https://img.shields.io/badge/license-MIT-22c55e)](LICENSE)
 [![PRs](https://img.shields.io/badge/PRs-welcome-ff69b4)](#贡献)
+
+**简体中文** · [English](docs/i18n/README.en.md) · [繁體中文](docs/i18n/README.zh-TW.md) · [日本語](docs/i18n/README.ja.md) · [한국어](docs/i18n/README.ko.md)
 
 </div>
 
@@ -43,6 +44,63 @@ dsh-go                                         # 打开 http://127.0.0.1:3080
 - **不在 OpenMinis 里**：Termux + `proot-distro install alpine`、UserLAnd 等任何 PRoot 容器都适用，`install.sh` 只依赖 `apk/npm/node-gyp`。
 
 > 为什么特意写这一节：光说「Android + PRoot」太抽象，两个报错（node-pty 的 glibc ABI、sandbox backend 缺失）都跟**宿主进程怎么起容器**有关，知道宿主是什么，排查时能少走一半弯路。
+
+---
+
+## 稀缺点：它不只是"跑起来了"，它能直接动你手机里的文件
+
+电脑上跑 dsh 谁都会。**手机上跑 dsh 的价值不在 dsh，在于它坐在你的相册、下载、微信文件旁边。**
+
+![文件挂载](docs/mount-flow.svg)
+
+OpenMinis 会把手机存储挂到沙箱里的固定路径：
+
+| 手机侧 | 沙箱内路径 | 你平时用来干什么 |
+|---|---|---|
+| `/sdcard/Documents` | `/var/minis/mounts/Documents/` | 文档、课件、下载的 PDF |
+| `/sdcard/Download` | `/var/minis/mounts/Download/` | 浏览器下载、微信保存的文件 |
+| 跨会话共享目录 | `/var/minis/shared/` | 多个会话共用的产物 |
+
+于是 dsh 只要把工作区指向这些挂载目录，就变成「**能读写手机的 Agent**」：
+
+- **产出直接落地手机**：harness 生成的 PPTX / PDF / ICS / 脚本写进 `Documents/dsh-workspace/`，退出 App 后用文件管理器、微信、WPS 直接打开，不需要"再传一次到手机"。
+- **反向读手机文件**：把 `2026暑期实践报告.docx`、课表截图、发票 PDF 丢进 Documents，让 dsh 在会话里直接读、改、重新导出。
+- **离线 + 私有**：模型走你的 API，文件全程不出设备。
+- **随时能用**：地铁上、床上、旅行中，不用开机电脑。
+
+### 关键一步：把工作区挂到挂载目录
+
+dsh 默认工作区是 `/root`，在 PRoot 里写文件容易 `Operation not permitted`，而且手机根本看不到。改成挂载目录即可。
+
+```bash
+# 1. 建一个手机可见的工作区
+mkdir -p /var/minis/mounts/Documents/dsh-workspace
+
+# 2. 注册到 dsh（保留已有工作区，不覆盖）
+cp ~/.dsh/storages/workspace.json ~/.dsh/storages/workspace.json.bak
+python3 - <<'PY'
+import json, uuid, datetime
+p = json.load(open('/root/.dsh/storages/workspace.json'))
+new = "/var/minis/mounts/Documents/dsh-workspace"
+for ws in p["tables"]["workspaces"].values():
+    if ws.get("path") == new:
+        raise SystemExit("已注册，跳过")
+now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", ".000Z")
+wid = "ws-" + uuid.uuid4().hex[:12]
+p["tables"]["workspaces"][wid] = {"path": new, "title": "dsh-workspace",
+                                  "sessionIds": [], "createdAt": now, "updatedAt": now}
+p["global"]["workspaceIds"].append(wid)
+json.dump(p, open('/root/.dsh/storages/workspace.json', 'w'), indent=2, ensure_ascii=False)
+print("注册成功", wid)
+PY
+
+# 3. 重启 harness，UI 侧边栏里选 dsh-workspace 新建会话
+pkill -f 'dsh/lib/bin.js'; sleep 2; dsh-go
+```
+
+**验证**：在新会话里让 agent 写一个 `hello.txt`，然后用手机文件管理器打开 `Documents/dsh-workspace/` —— 文件就在那儿。
+
+> 这和「在电脑上跑一个本地 Agent」是两件事：电脑上的 Agent 要动手机文件得靠微信传、网盘同步、数据线；挂在 OpenMinis 挂载点上的 dsh，读写手机文件就是一次普通的 `open()`。
 
 ---
 
