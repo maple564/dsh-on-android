@@ -55,6 +55,29 @@ The reference environment is **[OpenMinis](https://github.com/OpenMinis/OpenMini
 
 ---
 
+## Division of labour: Minis owns local files, dsh owns execution
+
+<p align="center"><img src="https://github.com/maple564/dsh-on-android/raw/main/docs/layers.svg" alt="two layers" width="100%"></p>
+
+This is not "install dsh on a phone" — it's **two layers, each doing one job**:
+
+| | Minis (local layer) | dsh (execution layer) |
+|---|---|---|
+| Owns | mounting phone storage, the PRoot/Alpine sandbox, device APIs (photos, calendar, notifications, clipboard), API keys & permissions, app lifecycle | the agent loop, plan/todo decomposition, tool calls, long-task context, chat/trace views, model & reasoning effort |
+| Doesn't own | how a task is decomposed, how many steps it takes | where the file finally lives, where device permissions come from |
+| Guarantees | **the file is real, the device is real** | **the task is actually finished** (`1 turn · 31 steps` is countable evidence) |
+
+There is exactly **one contract between them: the mounted directory.** Four things follow:
+
+1. **Each does what it's good at** — you don't force Minis to run a 30-step agent loop, and you don't force dsh to figure out how to read the phone's photo library (it never could).
+2. **The file is the interface** — Minis guarantees the path is real and visible to the device; dsh guarantees what lands there is correct. No sync layer, no cloud drive, no "send it over again".
+3. **Observable** — on the Minis side you watch the shell process and where files actually are; on the dsh side you watch the conversation, the trace and the step count. A failure is immediately attributable to one layer.
+4. **Swappable** — replace the execution layer with any other local service (Gradio, Jupyter, your own RAG app); it still works, because the contract is just "a directory and a port".
+
+In one line: **Minis provides the real world, dsh provides the execution.**
+
+---
+
 ## The scarce part: it doesn't just run — it can touch the files on your phone
 
 Anyone can run dsh on a laptop. **The value of running it on a phone isn't dsh — it's that it sits right next to your photos, downloads and chat attachments.**
